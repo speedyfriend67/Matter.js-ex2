@@ -3,71 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Matter.js Scene</title>
+    <title>Deep Neural Network with TensorFlow.js</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.7.0"></script>
 </head>
 <body>
-    <div id="exampleContainer"></div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.17.1/matter.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            var Engine = Matter.Engine,
-                Render = Matter.Render,
-                World = Matter.World,
-                Bodies = Matter.Bodies,
-                Constraint = Matter.Constraint,
-                Events = Matter.Events;
+        // Define a deep neural network model
+        const model = tf.sequential({
+            layers: [
+                tf.layers.dense({ inputShape: [2], units: 64, activation: 'relu' }),
+                tf.layers.dense({ units: 32, activation: 'relu' }),
+                tf.layers.dense({ units: 1, activation: 'sigmoid' })
+            ]
+        });
 
-            // create engine
-            var engine = Engine.create();
+        // Compile the model
+        model.compile({
+            optimizer: 'adam', // Adaptive Moment Estimation
+            loss: 'binaryCrossentropy',
+            metrics: ['accuracy']
+        });
 
-            // create renderer
-            var render = Render.create({
-                element: document.getElementById('exampleContainer'),
-                engine: engine,
-                options: {
-                    width: 800,
-                    height: 600,
-                    wireframes: false
-                }
-            });
+        // Training data
+        const inputData = tf.tensor2d([
+            [0, 0],
+            [0, 1],
+            [1, 0],
+            [1, 1]
+        ]);
 
-            Render.run(render);
+        const outputData = tf.tensor2d([
+            [0],
+            [1],
+            [1],
+            [0]
+        ]);
 
-            // create bodies
-            var ball = Bodies.circle(400, 200, 20, { restitution: 0.8, isStatic: true });
-            var ground = Bodies.rectangle(400, 600, 800, 10, { isStatic: true });
-            var constraint = Constraint.create({
-                pointA: { x: 400, y: 0 },
-                bodyB: ball,
-                stiffness: 0.05
-            });
+        // Train the model
+        model.fit(inputData, outputData, { epochs: 1000 }).then(() => {
+            // Make predictions
+            const predictions = model.predict(inputData);
 
-            // add bodies to the world
-            World.add(engine.world, [ball, ground, constraint]);
-
-            // add event listener to the ball
-            Events.on(ball, 'mousedown', function (event) {
-                // Unfreeze the ball
-                ball.isStatic = false;
-            });
-
-            // add event listener to the world to move the ground when touched
-            Events.on(engine.world, 'mousedown', function (event) {
-                // Move the ground up when touched
-                Body.translate(ground, { x: 0, y: -10 });
-            });
-
-            // add visual effects to the ground when touched
-            Events.on(engine.world, 'mousedown', function (event) {
-                // Visual feedback: Change the color of the ground temporarily
-                ground.render.fillStyle = '#ff0000'; // red
-                setTimeout(function () {
-                    ground.render.fillStyle = '#888888'; // back to gray
-                }, 100);
-            });
-
-            // run the engine
-            Engine.run(engine);
+            predictions.print();
         });
     </script>
 </body>
