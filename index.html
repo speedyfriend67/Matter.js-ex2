@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Touchable and Freeze with Matter.js</title>
+    <title>Interactive Matter.js Scene</title>
 </head>
 <body>
     <div id="exampleContainer"></div>
@@ -49,6 +49,21 @@
             Events.on(ball, 'mousedown', function (event) {
                 // Unfreeze the ball
                 ball.isStatic = false;
+            });
+
+            // add event listener to the world to move the ground when touched
+            Events.on(engine.world, 'mousedown', function (event) {
+                // Move the ground up when touched
+                Body.translate(ground, { x: 0, y: -10 });
+            });
+
+            // add visual effects to the ground when touched
+            Events.on(engine.world, 'mousedown', function (event) {
+                // Visual feedback: Change the color of the ground temporarily
+                ground.render.fillStyle = '#ff0000'; // red
+                setTimeout(function () {
+                    ground.render.fillStyle = '#888888'; // back to gray
+                }, 100);
             });
 
             // run the engine
